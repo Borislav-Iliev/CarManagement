@@ -24,7 +24,7 @@ public class Car {
     @Column(name = "license_plate", nullable = false)
     private String licensePlate;
 
-    @OneToMany(mappedBy = "car", targetEntity = Garage.class, fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Garage.class, fetch = FetchType.EAGER)
     private List<Garage> garages;
 
     @OneToMany(mappedBy = "car", targetEntity = Maintenance.class, fetch = FetchType.EAGER)
