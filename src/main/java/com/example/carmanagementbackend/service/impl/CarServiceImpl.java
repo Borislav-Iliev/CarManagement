@@ -50,21 +50,21 @@ public class CarServiceImpl implements CarService {
                     .orElseThrow();
 
             return this.carRepository.findAllByGarages(List.of(garage))
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();;
+                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
         if (fromYear.isPresent()) {
             return this.carRepository.findAllByYearAfter(fromYear.get())
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();;
+                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
         if (toYear.isPresent()) {
             return this.carRepository.findAllByYearBefore(toYear.get())
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();;
+                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
         return this.carRepository.findAll()
-                .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();;
+                .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
     }
 
     @Override

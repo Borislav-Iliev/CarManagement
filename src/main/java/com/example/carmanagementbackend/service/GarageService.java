@@ -1,20 +1,20 @@
 package com.example.carmanagementbackend.service;
 
 import com.example.carmanagementbackend.entity.dto.garage.AddGarageDto;
-import com.example.carmanagementbackend.entity.model.Garage;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDto;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface GarageService {
 
-    Garage getGarageById(Long id);
+    ResponseGarageDto getGarageById(Long id);
 
-    List<Garage> getAllGarages(Optional<String> city);
+    List<ResponseGarageDto> getAllGarages(Optional<String> city);
 
-    Garage updateGarage(Long id, AddGarageDto addGarageDto);
+    ResponseGarageDto updateGarage(Long id, AddGarageDto addGarageDto);
 
     boolean deleteGarage(Long id);
 
-    Garage addGarage(AddGarageDto addGarageDto);
+    ResponseGarageDto addGarage(AddGarageDto addGarageDto);
 }

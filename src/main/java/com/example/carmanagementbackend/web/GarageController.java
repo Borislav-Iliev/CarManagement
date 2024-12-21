@@ -1,7 +1,7 @@
 package com.example.carmanagementbackend.web;
 
 import com.example.carmanagementbackend.entity.dto.garage.AddGarageDto;
-import com.example.carmanagementbackend.entity.model.Garage;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDto;
 import com.example.carmanagementbackend.service.GarageService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,19 +22,19 @@ public class GarageController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Garage> getGarage(@PathVariable Long id) {
+    public ResponseEntity<ResponseGarageDto> getGarage(@PathVariable Long id) {
         return ResponseEntity
                 .ok(this.garageService.getGarageById(id));
     }
 
     @GetMapping()
-    public ResponseEntity<List<Garage>> getAllGarages(@RequestParam(required = false, name = "city") String city) {
+    public ResponseEntity<List<ResponseGarageDto>> getAllGarages(@RequestParam(required = false, name = "city") String city) {
         return ResponseEntity
                 .ok(this.garageService.getAllGarages(Optional.ofNullable(city)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Garage> updateGarage(@PathVariable Long id, @RequestBody @Valid AddGarageDto addGarageDto) {
+    public ResponseEntity<ResponseGarageDto> updateGarage(@PathVariable Long id, @RequestBody @Valid AddGarageDto addGarageDto) {
         return ResponseEntity
                 .ok(this.garageService.updateGarage(id, addGarageDto));
     }
@@ -46,8 +46,8 @@ public class GarageController {
     }
 
     @PostMapping()
-    public ResponseEntity<Garage> addGarage(@RequestBody @Valid AddGarageDto addGarageDto) {
-        Garage garage = this.garageService.addGarage(addGarageDto);
+    public ResponseEntity<ResponseGarageDto> addGarage(@RequestBody @Valid AddGarageDto addGarageDto) {
+        ResponseGarageDto garage = this.garageService.addGarage(addGarageDto);
 
         return ResponseEntity
                 .created(URI.create("/garages" + garage.getId()))

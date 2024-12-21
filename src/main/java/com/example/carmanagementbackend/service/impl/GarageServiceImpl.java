@@ -1,6 +1,7 @@
 package com.example.carmanagementbackend.service.impl;
 
 import com.example.carmanagementbackend.entity.dto.garage.AddGarageDto;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDto;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.repository.GarageRepository;
 import com.example.carmanagementbackend.service.GarageService;
@@ -22,31 +23,43 @@ public class GarageServiceImpl implements GarageService {
     }
 
     @Override
-    public Garage getGarageById(Long id) {
-        return this.garageRepository
+    public ResponseGarageDto getGarageById(Long id) {
+        Garage garage = this.garageRepository
                 .findById(id)
-                .orElse(null);
+                .orElseThrow();
+
+        return this.modelMapper.map(garage, ResponseGarageDto.class);
     }
 
     @Override
-    public List<Garage> getAllGarages(Optional<String> city) {
+    public List<ResponseGarageDto> getAllGarages(Optional<String> city) {
         if (city.isPresent()) {
-            return this.garageRepository.findAllByCityContainsIgnoreCase(city.get());
+            return this.garageRepository
+                    .findAllByCityContainsIgnoreCase(city.get())
+                    .stream()
+                    .map(garage -> this.modelMapper.map(garage, ResponseGarageDto.class))
+                    .toList();
         }
 
-        return this.garageRepository.findAll();
+        return this.garageRepository
+                .findAll()
+                .stream()
+                .map(garage -> this.modelMapper.map(garage, ResponseGarageDto.class))
+                .toList();
     }
 
     @Override
-    public Garage updateGarage(Long id, AddGarageDto addGarageDto) {
-        Garage garageById = this.getGarageById(id);
+    public ResponseGarageDto updateGarage(Long id, AddGarageDto addGarageDto) {
+        Garage garageById = this.garageRepository
+                .findById(id)
+                .orElseThrow();
 
         garageById.setName(addGarageDto.getName());
         garageById.setLocation(addGarageDto.getLocation());
         garageById.setCity(addGarageDto.getCity());
         garageById.setCapacity(addGarageDto.getCapacity());
 
-        return this.garageRepository.save(garageById);
+        return this.modelMapper.map(this.garageRepository.save(garageById), ResponseGarageDto.class);
     }
 
     @Override
@@ -56,13 +69,13 @@ public class GarageServiceImpl implements GarageService {
     }
 
     @Override
-    public Garage addGarage(AddGarageDto addGarageDto) {
+    public ResponseGarageDto addGarage(AddGarageDto addGarageDto) {
         if (addGarageDto == null) {
             throw new IllegalArgumentException("Invalid garage entity!");
         }
 
         Garage garage = this.modelMapper.map(addGarageDto, Garage.class);
 
-        return this.garageRepository.save(garage);
+        return this.modelMapper.map(this.garageRepository.save(garage), ResponseGarageDto.class);
     }
 }
