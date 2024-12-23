@@ -10,11 +10,11 @@ import java.util.List;
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long> {
 
-    List<Car> findAllByMake(String make);
+    List<Car> findAllByMakeContainsIgnoreCase(String make);
 
-    List<Car> findAllByGarages(List<Garage> garages);
+    List<Car> findAllByGaragesContains(List<Garage> garages);
 
-    List<Car> findAllByYearAfter(int year);
+    List<Car> findAllByYearGreaterThanEqual(int year);
 
-    List<Car> findAllByYearBefore(int year);
+    List<Car> findAllByYearLessThanEqual(int year);
 }

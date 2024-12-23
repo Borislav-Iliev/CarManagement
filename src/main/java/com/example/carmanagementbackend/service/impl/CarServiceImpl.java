@@ -40,7 +40,7 @@ public class CarServiceImpl implements CarService {
     public List<ResponseCarDto> getAllGarages(Optional<String> make, Optional<Integer> garageId,
                                    Optional<Integer> fromYear, Optional<Integer> toYear) {
         if (make.isPresent()) {
-            return this.carRepository.findAllByMake(make.get())
+            return this.carRepository.findAllByMakeContainsIgnoreCase(make.get())
                     .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
@@ -49,17 +49,17 @@ public class CarServiceImpl implements CarService {
                     .findById((long) garageId.get())
                     .orElseThrow();
 
-            return this.carRepository.findAllByGarages(List.of(garage))
+            return this.carRepository.findAllByGaragesContains(List.of(garage))
                     .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
         if (fromYear.isPresent()) {
-            return this.carRepository.findAllByYearAfter(fromYear.get())
+            return this.carRepository.findAllByYearGreaterThanEqual(fromYear.get())
                     .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
         if (toYear.isPresent()) {
-            return this.carRepository.findAllByYearBefore(toYear.get())
+            return this.carRepository.findAllByYearLessThanEqual(toYear.get())
                     .stream().map(car -> this.modelMapper.map(car, ResponseCarDto.class)).toList();
         }
 
@@ -81,6 +81,8 @@ public class CarServiceImpl implements CarService {
         List<Garage> garages = this.garageRepository.findAllById(updateCarDto.getGarageIds());
         carById.setGarages(garages);
 
+        this.carRepository.save(carById);
+
         return this.modelMapper.map(carById, ResponseCarDto.class);
     }
 
@@ -101,6 +103,7 @@ public class CarServiceImpl implements CarService {
         List<Garage> garages = this.garageRepository.findAllById(addCarDto.getGarageIds());
         car.setGarages(garages);
 
-        return this.modelMapper.map(this.carRepository.save(car), ResponseCarDto.class);
+        car = this.carRepository.save(car);
+        return this.modelMapper.map(car, ResponseCarDto.class);
     }
 }

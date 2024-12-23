@@ -1,9 +1,11 @@
 package com.example.carmanagementbackend.entity.dto.car;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AddCarDto {
@@ -23,10 +25,11 @@ public class AddCarDto {
     @Size(min = 2, max = 20, message = "Car license plate must be between 2 and 20 characters!")
     private String licensePlate;
 
-    @NotBlank(message = "Car garage ids must be provided!")
+    @NotNull(message = "Car garage ids must be provided!")
     private List<Long> garageIds;
 
     public AddCarDto() {
+        this.garageIds = new ArrayList<>();
     }
 
     public String getMake() {
