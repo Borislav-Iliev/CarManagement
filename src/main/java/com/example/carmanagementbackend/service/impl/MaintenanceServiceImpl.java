@@ -1,5 +1,6 @@
 package com.example.carmanagementbackend.service.impl;
 
+import com.example.carmanagementbackend.entity.dto.maintenance.MonthlyRequestsReportDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.ResponseMaintenanceDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.UpdateMaintenanceDTO;
 import com.example.carmanagementbackend.entity.model.Car;
@@ -13,11 +14,17 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.time.Month;
+import java.time.YearMonth;
+import java.util.*;
 
 @Service
 public class MaintenanceServiceImpl implements MaintenanceService {
+    private static final String MAINTENANCE_NOT_FOUND = "Maintenance not found!";
+    private static final String MAINTENANCE_CANNOT_BE_NULL = "Maintenance cannot be null!";
+    private static final String CAR_NOT_FOUND = "Car not found!";
+    private static final String GARAGE_NOT_FOUND = "Garage not found!";
+    private static final String NOT_ENOUGH_SPACE_IN_GARAGE = "Not enough space in garage!";
 
     private final MaintenanceRepository maintenanceRepository;
     private final CarRepository carRepository;
@@ -35,7 +42,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     public ResponseMaintenanceDTO getMaintenanceById(Long id) {
         Maintenance maintenance = this.maintenanceRepository
                 .findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException(MAINTENANCE_NOT_FOUND));
 
         return this.modelMapper.map(maintenance, ResponseMaintenanceDTO.class);
     }
@@ -69,20 +76,22 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     @Override
     public ResponseMaintenanceDTO updateMaintenance(Long id, UpdateMaintenanceDTO updateMaintenanceDTO) {
         if (updateMaintenanceDTO == null) {
-            throw new IllegalArgumentException("Invalid maintenance entity!");
+            throw new IllegalArgumentException(MAINTENANCE_CANNOT_BE_NULL);
         }
 
         Maintenance maintenance = this.maintenanceRepository
                 .findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException(MAINTENANCE_NOT_FOUND));
+        setMaintenanceFields(updateMaintenanceDTO, maintenance);
 
-        maintenance.setServiceType(updateMaintenanceDTO.getServiceType());
-        maintenance.setDate(updateMaintenanceDTO.getScheduledDate());
-
-        Car car = this.carRepository.findById(updateMaintenanceDTO.getCarId()).orElseThrow();
+        Car car = this.carRepository
+                .findById(updateMaintenanceDTO.getCarId())
+                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
         maintenance.setCar(car);
 
-        Garage garage = this.garageRepository.findById(updateMaintenanceDTO.getGarageId()).orElseThrow();
+        Garage garage = this.garageRepository
+                .findById(updateMaintenanceDTO.getGarageId())
+                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
         maintenance.setGarage(garage);
 
         maintenance = this.maintenanceRepository.save(maintenance);
@@ -98,29 +107,66 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     @Override
     public ResponseMaintenanceDTO addMaintenance(UpdateMaintenanceDTO updateMaintenanceDTO) {
         if (updateMaintenanceDTO == null) {
-            throw new IllegalArgumentException("Invalid maintenance entity!");
+            throw new IllegalArgumentException(MAINTENANCE_CANNOT_BE_NULL);
         }
 
         int currentCapacity = this.maintenanceRepository
                 .getCountOfMaintenanceForGarageAndDate(updateMaintenanceDTO.getGarageId(), updateMaintenanceDTO.getScheduledDate());
         Garage garage = this.garageRepository
                 .findById(updateMaintenanceDTO.getGarageId())
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
 
         if (currentCapacity >= garage.getCapacity()) {
-            throw new IllegalArgumentException("Not enough space in garage!");
+            throw new RuntimeException(NOT_ENOUGH_SPACE_IN_GARAGE);
         }
 
         Maintenance maintenance = new Maintenance();
-        maintenance.setServiceType(updateMaintenanceDTO.getServiceType());
-        maintenance.setDate(updateMaintenanceDTO.getScheduledDate());
+        setMaintenanceFields(updateMaintenanceDTO, maintenance);
         maintenance.setGarage(garage);
 
-        Car car = this.carRepository.findById(updateMaintenanceDTO.getCarId()).orElseThrow();
+        Car car = this.carRepository
+                .findById(updateMaintenanceDTO.getCarId())
+                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
         maintenance.setCar(car);
 
         maintenance = this.maintenanceRepository.save(maintenance);
 
         return this.modelMapper.map(maintenance, ResponseMaintenanceDTO.class);
+    }
+
+    @Override
+    public List<MonthlyRequestsReportDTO> getMonthlyRequestsReport(Long garageId, YearMonth startMonth, YearMonth endMonth) {
+        List<Maintenance> maintenances = this.maintenanceRepository
+                .getAllMaintenancesForGarageForPeriod(garageId, startMonth.atDay(1), endMonth.atEndOfMonth());
+
+        Map<Month, List<Maintenance>> maintenancesPerMonth = new HashMap<>();
+        maintenances.forEach(m -> maintenancesPerMonth.computeIfAbsent(m.getDate().getMonth(), key -> new ArrayList<>()).add(m));
+
+        List<MonthlyRequestsReportDTO> result = new ArrayList<>();
+        YearMonth nextMonth = endMonth.plusMonths(1);
+        while (startMonth.isBefore(nextMonth)) {
+            Month currentMonth = startMonth.getMonth();
+
+            List<Maintenance> currentMonthMaintenances = maintenancesPerMonth.get(currentMonth);
+            MonthlyRequestsReportDTO monthlyRequestsReportDTO = new MonthlyRequestsReportDTO();
+            if (currentMonthMaintenances != null) {
+                LocalDate date = currentMonthMaintenances.get(0).getDate();
+                monthlyRequestsReportDTO.setYearMonth(YearMonth.of(date.getYear(), date.getMonth()));
+                monthlyRequestsReportDTO.setRequests(currentMonthMaintenances.size());
+            } else {
+                monthlyRequestsReportDTO.setYearMonth(startMonth);
+                monthlyRequestsReportDTO.setRequests(0);
+            }
+
+            result.add(monthlyRequestsReportDTO);
+            startMonth = startMonth.plusMonths(1);
+        }
+
+        return result;
+    }
+
+    private void setMaintenanceFields(UpdateMaintenanceDTO updateMaintenanceDTO, Maintenance maintenance) {
+        maintenance.setServiceType(updateMaintenanceDTO.getServiceType());
+        maintenance.setDate(updateMaintenanceDTO.getScheduledDate());
     }
 }

@@ -4,11 +4,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddCarDto {
+@Getter
+@Setter
+@NoArgsConstructor
+public class AddCarDTO {
 
     @NotBlank(message = "Car make must be provided!")
     @Size(min = 2, max = 20, message = "Car make must be between 2 and 20 characters!")
@@ -27,28 +33,4 @@ public class AddCarDto {
 
     @NotNull(message = "Car garage ids must be provided!")
     private List<Long> garageIds;
-
-    public AddCarDto() {
-        this.garageIds = new ArrayList<>();
-    }
-
-    public String getMake() {
-        return make;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public int getProductionYear() {
-        return productionYear;
-    }
-
-    public String getLicensePlate() {
-        return licensePlate;
-    }
-
-    public List<Long> getGarageIds() {
-        return garageIds;
-    }
 }

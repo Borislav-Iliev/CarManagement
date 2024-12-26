@@ -1,10 +1,11 @@
 package com.example.carmanagementbackend.web;
 
-import com.example.carmanagementbackend.entity.dto.car.AddCarDto;
-import com.example.carmanagementbackend.entity.dto.car.ResponseCarDto;
-import com.example.carmanagementbackend.entity.dto.car.UpdateCarDto;
+import com.example.carmanagementbackend.entity.dto.car.AddCarDTO;
+import com.example.carmanagementbackend.entity.dto.car.ResponseCarDTO;
+import com.example.carmanagementbackend.entity.dto.car.UpdateCarDTO;
 import com.example.carmanagementbackend.service.CarService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/cars")
 public class CarController {
+    @Value("${server.address}")
+    private String serverAddress;
+
+    @Value("${server.port}")
+    private String port;
+
+    private final String serverUrl = "http://" + serverAddress + ":/" + port;
 
     private final CarService carService;
 
@@ -23,13 +31,13 @@ public class CarController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseCarDto> getCarById(@PathVariable Long id) {
+    public ResponseEntity<ResponseCarDTO> getCarById(@PathVariable Long id) {
         return ResponseEntity
                 .ok(this.carService.getCarById(id));
     }
 
     @GetMapping()
-    public ResponseEntity<List<ResponseCarDto>> getAllCars(
+    public ResponseEntity<List<ResponseCarDTO>> getAllCars(
             @RequestParam(required = false, name = "carMake") String make,
             @RequestParam(required = false, name = "garageId") Integer garageId,
             @RequestParam(required = false, name = "fromYear") Integer fromYear,
@@ -41,9 +49,9 @@ public class CarController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseCarDto> updateCar(@PathVariable Long id, @RequestBody @Valid UpdateCarDto updateCarDto) {
+    public ResponseEntity<ResponseCarDTO> updateCar(@PathVariable Long id, @RequestBody @Valid UpdateCarDTO updateCarDTO) {
         return ResponseEntity
-                .ok(this.carService.updateCar(id, updateCarDto));
+                .ok(this.carService.updateCar(id, updateCarDTO));
     }
 
     @DeleteMapping("/{id}")
@@ -53,11 +61,11 @@ public class CarController {
     }
 
     @PostMapping()
-    public ResponseEntity<ResponseCarDto> addCar(@RequestBody @Valid AddCarDto addCarDto) {
-        ResponseCarDto car = this.carService.addCar(addCarDto);
+    public ResponseEntity<ResponseCarDTO> addCar(@RequestBody @Valid AddCarDTO addCarDTO) {
+        ResponseCarDTO car = this.carService.addCar(addCarDTO);
 
         return ResponseEntity
-                .created(URI.create("/garages" + car.getId()))
+                .created(URI.create(serverUrl + "/cars" + car.getId()))
                 .body(car);
     }
 }

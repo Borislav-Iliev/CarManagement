@@ -1,9 +1,15 @@
 package com.example.carmanagementbackend.entity.dto.maintenance;
 
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class UpdateMaintenanceDTO {
     @NotNull(message = "Maintenance car id must be provided!")
     private Long carId;
@@ -18,23 +24,4 @@ public class UpdateMaintenanceDTO {
 
     @NotNull(message = "Maintenance garage id must be provided!")
     private Long garageId;
-
-    public UpdateMaintenanceDTO() {
-    }
-
-    public Long getCarId() {
-        return carId;
-    }
-
-    public String getServiceType() {
-        return serviceType;
-    }
-
-    public LocalDate getScheduledDate() {
-        return scheduledDate;
-    }
-
-    public Long getGarageId() {
-        return garageId;
-    }
 }

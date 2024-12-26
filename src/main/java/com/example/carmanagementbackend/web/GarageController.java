@@ -1,19 +1,29 @@
 package com.example.carmanagementbackend.web;
 
-import com.example.carmanagementbackend.entity.dto.garage.AddGarageDto;
-import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDto;
+import com.example.carmanagementbackend.entity.dto.garage.AddGarageDTO;
+import com.example.carmanagementbackend.entity.dto.garage.GarageDailyAvailabilityReportDTO;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDTO;
 import com.example.carmanagementbackend.service.GarageService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/garages")
 public class GarageController {
+    @Value("${server.address}")
+    private String serverAddress;
+
+    @Value("${server.port}")
+    private String port;
+
+    private final String serverUrl = "http://" + serverAddress + ":/" + port;
 
     private final GarageService garageService;
 
@@ -22,19 +32,30 @@ public class GarageController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseGarageDto> getGarage(@PathVariable Long id) {
+    public ResponseEntity<ResponseGarageDTO> getGarage(@PathVariable Long id) {
         return ResponseEntity
                 .ok(this.garageService.getGarageById(id));
     }
 
     @GetMapping()
-    public ResponseEntity<List<ResponseGarageDto>> getAllGarages(@RequestParam(required = false, name = "city") String city) {
+    public ResponseEntity<List<ResponseGarageDTO>> getAllGarages(@RequestParam(required = false, name = "city") String city) {
         return ResponseEntity
                 .ok(this.garageService.getAllGarages(Optional.ofNullable(city)));
     }
 
+    @GetMapping("/dailyAvailabilityReport")
+    public ResponseEntity<List<GarageDailyAvailabilityReportDTO>> getGarageDailyAvailabilityReport(
+            @RequestParam(name = "garageId") Long garageId,
+            @RequestParam(name = "startDate") String startDate,
+            @RequestParam(name = "endDate") String endDate
+    ) {
+        return ResponseEntity
+                .ok(this.garageService.getGarageDailyAvailabilityReport(garageId,
+                        LocalDate.parse(startDate), LocalDate.parse(endDate)));
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseGarageDto> updateGarage(@PathVariable Long id, @RequestBody @Valid AddGarageDto addGarageDto) {
+    public ResponseEntity<ResponseGarageDTO> updateGarage(@PathVariable Long id, @RequestBody @Valid AddGarageDTO addGarageDto) {
         return ResponseEntity
                 .ok(this.garageService.updateGarage(id, addGarageDto));
     }
@@ -46,11 +67,11 @@ public class GarageController {
     }
 
     @PostMapping()
-    public ResponseEntity<ResponseGarageDto> addGarage(@RequestBody @Valid AddGarageDto addGarageDto) {
-        ResponseGarageDto garage = this.garageService.addGarage(addGarageDto);
+    public ResponseEntity<ResponseGarageDTO> addGarage(@RequestBody @Valid AddGarageDTO addGarageDto) {
+        ResponseGarageDTO garage = this.garageService.addGarage(addGarageDto);
 
         return ResponseEntity
-                .created(URI.create("/garages" + garage.getId()))
+                .created(URI.create(serverUrl + "/garages/" + garage.getId()))
                 .body(garage);
     }
 }

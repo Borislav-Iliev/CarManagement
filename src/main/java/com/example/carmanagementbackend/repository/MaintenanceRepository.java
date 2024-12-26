@@ -24,4 +24,13 @@ public interface MaintenanceRepository extends JpaRepository<Maintenance, Long> 
 
     @Query("SELECT COUNT(m) FROM Maintenance m WHERE m.garage.id = :garageId AND m.date = :date")
     int getCountOfMaintenanceForGarageAndDate(@Param("garageId") Long garageId, @Param("date") LocalDate date);
+
+    @Query("SELECT m" +
+            " FROM Maintenance m" +
+            " WHERE m.garage.id = :garageId AND m.date >= :startDate AND m.date <= :endDate")
+    List<Maintenance> getAllMaintenancesForGarageForPeriod(
+            @Param("garageId") Long garageId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

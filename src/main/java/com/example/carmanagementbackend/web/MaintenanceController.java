@@ -1,5 +1,6 @@
 package com.example.carmanagementbackend.web;
 
+import com.example.carmanagementbackend.entity.dto.maintenance.MonthlyRequestsReportDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.ResponseMaintenanceDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.UpdateMaintenanceDTO;
 import com.example.carmanagementbackend.service.MaintenanceService;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +19,12 @@ import java.util.Optional;
 @RequestMapping("/maintenance")
 public class MaintenanceController {
     @Value("${server.address}")
-    private static String serverAddress;
+    private String serverAddress;
 
     @Value("${server.port}")
-    private static String port;
+    private String port;
 
-    private static final String SERVER_URL = "http://" + serverAddress + ":/" + port;
+    private final String serverUrl = "http://" + serverAddress + ":/" + port;
 
     private final MaintenanceService maintenanceService;
 
@@ -48,6 +50,16 @@ public class MaintenanceController {
                         Optional.ofNullable(startDate), Optional.ofNullable(endDate)));
     }
 
+    @GetMapping("/monthlyRequestsReport")
+    public ResponseEntity<List<MonthlyRequestsReportDTO>> getMonthlyRequestsReport(
+            @RequestParam("garageId") Long garageId,
+            @RequestParam("startMonth") String startMonth,
+            @RequestParam("endMonth") String endMonth
+    ) {
+        return ResponseEntity
+                .ok(this.maintenanceService.getMonthlyRequestsReport(garageId, YearMonth.parse(startMonth), YearMonth.parse(endMonth)));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ResponseMaintenanceDTO> updateMaintenance(
             @PathVariable Long id,
@@ -67,7 +79,7 @@ public class MaintenanceController {
         ResponseMaintenanceDTO responseMaintenanceDTO = this.maintenanceService.addMaintenance(updateMaintenanceDTO);
 
         return ResponseEntity
-                .created(URI.create(SERVER_URL + "/maintenance/" + responseMaintenanceDTO.getId()))
+                .created(URI.create(serverUrl + "/maintenance/" + responseMaintenanceDTO.getId()))
                 .body(responseMaintenanceDTO);
     }
 }

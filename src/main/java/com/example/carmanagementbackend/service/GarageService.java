@@ -1,20 +1,24 @@
 package com.example.carmanagementbackend.service;
 
-import com.example.carmanagementbackend.entity.dto.garage.AddGarageDto;
-import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDto;
+import com.example.carmanagementbackend.entity.dto.garage.AddGarageDTO;
+import com.example.carmanagementbackend.entity.dto.garage.GarageDailyAvailabilityReportDTO;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDTO;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface GarageService {
 
-    ResponseGarageDto getGarageById(Long id);
+    ResponseGarageDTO getGarageById(Long id);
 
-    List<ResponseGarageDto> getAllGarages(Optional<String> city);
+    List<ResponseGarageDTO> getAllGarages(Optional<String> city);
 
-    ResponseGarageDto updateGarage(Long id, AddGarageDto addGarageDto);
+    ResponseGarageDTO updateGarage(Long id, AddGarageDTO addGarageDTO);
 
     boolean deleteGarage(Long id);
 
-    ResponseGarageDto addGarage(AddGarageDto addGarageDto);
+    ResponseGarageDTO addGarage(AddGarageDTO addGarageDTO);
+
+    List<GarageDailyAvailabilityReportDTO> getGarageDailyAvailabilityReport(Long garageId, LocalDate startDate, LocalDate endDate);
 }

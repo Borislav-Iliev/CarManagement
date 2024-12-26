@@ -1,9 +1,15 @@
 package com.example.carmanagementbackend.entity.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "maintenances")
 public class Maintenance {
@@ -23,54 +29,4 @@ public class Maintenance {
 
     @ManyToOne(targetEntity = Garage.class, fetch = FetchType.EAGER)
     private Garage garage;
-
-    public Maintenance() {
-    }
-
-    public Maintenance(String serviceType, LocalDate date, Car car, Garage garage) {
-        this.serviceType = serviceType;
-        this.date = date;
-        this.car = car;
-        this.garage = garage;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getServiceType() {
-        return serviceType;
-    }
-
-    public void setServiceType(String serviceType) {
-        this.serviceType = serviceType;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public Car getCar() {
-        return car;
-    }
-
-    public void setCar(Car car) {
-        this.car = car;
-    }
-
-    public Garage getGarage() {
-        return garage;
-    }
-
-    public void setGarage(Garage garage) {
-        this.garage = garage;
-    }
 }
