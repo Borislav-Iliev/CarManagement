@@ -2,6 +2,7 @@ package com.example.carmanagementbackend.entity.dto.maintenance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonPropertyOrder({"id", "carId", "carName", "serviceType", "scheduledDate", "garageId", "garageName"})
 public class ResponseMaintenanceDTO {
     private Long id;
     private Long carId;

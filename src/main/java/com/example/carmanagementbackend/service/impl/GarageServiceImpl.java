@@ -3,6 +3,7 @@ package com.example.carmanagementbackend.service.impl;
 import com.example.carmanagementbackend.entity.dto.garage.AddGarageDTO;
 import com.example.carmanagementbackend.entity.dto.garage.GarageDailyAvailabilityReportDTO;
 import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDTO;
+import com.example.carmanagementbackend.entity.excpetion.GarageNotFoundException;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.repository.GarageRepository;
 import com.example.carmanagementbackend.service.GarageService;
@@ -28,11 +29,7 @@ public class GarageServiceImpl implements GarageService {
 
     @Override
     public ResponseGarageDTO getGarageById(Long id) {
-        Garage garage = this.garageRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
-
-        return this.modelMapper.map(garage, ResponseGarageDTO.class);
+        return this.modelMapper.map(getGarageEntity(id), ResponseGarageDTO.class);
     }
 
     @Override
@@ -49,26 +46,17 @@ public class GarageServiceImpl implements GarageService {
 
     @Override
     public ResponseGarageDTO updateGarage(Long id, AddGarageDTO addGarageDTO) {
-        Garage garageById = this.garageRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
-
-        setGarageFields(addGarageDTO, garageById);
+        Garage garageById = getGarageEntity(id);
+        mapToGarageEntity(addGarageDTO, garageById);
 
         return this.modelMapper.map(this.garageRepository.save(garageById), ResponseGarageDTO.class);
     }
 
-    private void setGarageFields(AddGarageDTO addGarageDTO, Garage garageById) {
-        garageById.setName(addGarageDTO.getName());
-        garageById.setLocation(addGarageDTO.getLocation());
-        garageById.setCity(addGarageDTO.getCity());
-        garageById.setCapacity(addGarageDTO.getCapacity());
-    }
-
     @Override
     public boolean deleteGarage(Long id) {
-        this.garageRepository.deleteById(id);
-        return this.garageRepository.existsById(id);
+        Garage garageEntity = this.getGarageEntity(id);
+        this.garageRepository.delete(garageEntity);
+        return true;
     }
 
     @Override
@@ -84,7 +72,7 @@ public class GarageServiceImpl implements GarageService {
 
     @Override
     public List<GarageDailyAvailabilityReportDTO> getGarageDailyAvailabilityReport(Long garageId, LocalDate startDate, LocalDate endDate) {
-        Garage garage = this.garageRepository.findById(garageId).orElseThrow();
+        Garage garage = getGarageEntity(garageId);
 
         List<GarageDailyAvailabilityReportDTO> garageDailyAvailabilityReport = this.garageRepository
                 .getGarageDailyAvailabilityReport(garageId, startDate, endDate);
@@ -92,5 +80,18 @@ public class GarageServiceImpl implements GarageService {
         garageDailyAvailabilityReport.forEach(e -> e.setAvailableCapacity(garage.getCapacity() - e.getRequests()));
 
         return garageDailyAvailabilityReport;
+    }
+
+    public Garage getGarageEntity(Long id) {
+        return this.garageRepository
+                .findById(id)
+                .orElseThrow(() -> new GarageNotFoundException(GARAGE_NOT_FOUND));
+    }
+
+    private void mapToGarageEntity(AddGarageDTO addGarageDTO, Garage garage) {
+        garage.setName(addGarageDTO.getName());
+        garage.setLocation(addGarageDTO.getLocation());
+        garage.setCity(addGarageDTO.getCity());
+        garage.setCapacity(addGarageDTO.getCapacity());
     }
 }

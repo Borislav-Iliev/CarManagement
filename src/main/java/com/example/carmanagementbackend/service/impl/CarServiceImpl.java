@@ -3,6 +3,7 @@ package com.example.carmanagementbackend.service.impl;
 import com.example.carmanagementbackend.entity.dto.car.AddCarDTO;
 import com.example.carmanagementbackend.entity.dto.car.ResponseCarDTO;
 import com.example.carmanagementbackend.entity.dto.car.UpdateCarDTO;
+import com.example.carmanagementbackend.entity.excpetion.CarNotFoundException;
 import com.example.carmanagementbackend.entity.model.Car;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.repository.CarRepository;
@@ -31,11 +32,7 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public ResponseCarDTO getCarById(Long id) {
-        Car car = this.carRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
-
-        return this.modelMapper.map(car, ResponseCarDTO.class);
+        return this.modelMapper.map(getCarEntity(id), ResponseCarDTO.class);
     }
 
     @Override
@@ -71,11 +68,8 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public ResponseCarDTO updateCar(Long id, UpdateCarDTO updateCarDTO) {
-        Car carById = this.carRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
-
-        setCarFields(updateCarDTO, carById);
+        Car carById = getCarEntity(id);
+        mapToCarEntity(updateCarDTO, carById);
 
         List<Garage> garages = this.garageRepository.findAllById(updateCarDTO.getGarageIds());
         carById.setGarages(garages);
@@ -85,17 +79,11 @@ public class CarServiceImpl implements CarService {
         return this.modelMapper.map(carById, ResponseCarDTO.class);
     }
 
-    private void setCarFields(UpdateCarDTO updateCarDTO, Car carById) {
-        carById.setMake(updateCarDTO.getMake());
-        carById.setModel(updateCarDTO.getModel());
-        carById.setYear(updateCarDTO.getProductionYear());
-        carById.setLicensePlate(updateCarDTO.getLicensePlate());
-    }
-
     @Override
     public boolean deleteCar(Long id) {
-        this.carRepository.deleteById(id);
-        return this.carRepository.existsById(id);
+        Car carEntity = this.getCarEntity(id);
+        this.carRepository.delete(carEntity);
+        return true;
     }
 
     @Override
@@ -111,5 +99,18 @@ public class CarServiceImpl implements CarService {
 
         car = this.carRepository.save(car);
         return this.modelMapper.map(car, ResponseCarDTO.class);
+    }
+
+    public Car getCarEntity(Long id) {
+        return this.carRepository
+                .findById(id)
+                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+    }
+
+    private void mapToCarEntity(UpdateCarDTO updateCarDTO, Car car) {
+        car.setMake(updateCarDTO.getMake());
+        car.setModel(updateCarDTO.getModel());
+        car.setYear(updateCarDTO.getProductionYear());
+        car.setLicensePlate(updateCarDTO.getLicensePlate());
     }
 }

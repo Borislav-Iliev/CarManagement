@@ -3,6 +3,9 @@ package com.example.carmanagementbackend.service.impl;
 import com.example.carmanagementbackend.entity.dto.maintenance.MonthlyRequestsReportDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.ResponseMaintenanceDTO;
 import com.example.carmanagementbackend.entity.dto.maintenance.UpdateMaintenanceDTO;
+import com.example.carmanagementbackend.entity.excpetion.CarNotFoundException;
+import com.example.carmanagementbackend.entity.excpetion.GarageNotFoundException;
+import com.example.carmanagementbackend.entity.excpetion.MaintenanceNotFoundException;
 import com.example.carmanagementbackend.entity.model.Car;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.entity.model.Maintenance;
@@ -40,11 +43,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
     @Override
     public ResponseMaintenanceDTO getMaintenanceById(Long id) {
-        Maintenance maintenance = this.maintenanceRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(MAINTENANCE_NOT_FOUND));
-
-        return this.modelMapper.map(maintenance, ResponseMaintenanceDTO.class);
+        return this.modelMapper.map(getMaintenanceEntity(id), ResponseMaintenanceDTO.class);
     }
 
     @Override
@@ -79,20 +78,11 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             throw new IllegalArgumentException(MAINTENANCE_CANNOT_BE_NULL);
         }
 
-        Maintenance maintenance = this.maintenanceRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException(MAINTENANCE_NOT_FOUND));
-        setMaintenanceFields(updateMaintenanceDTO, maintenance);
+        Maintenance maintenance = getMaintenanceEntity(id);
+        mapToMaintenanceEntity(updateMaintenanceDTO, maintenance);
 
-        Car car = this.carRepository
-                .findById(updateMaintenanceDTO.getCarId())
-                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
-        maintenance.setCar(car);
-
-        Garage garage = this.garageRepository
-                .findById(updateMaintenanceDTO.getGarageId())
-                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
-        maintenance.setGarage(garage);
+        maintenance.setCar(getCarEntity(updateMaintenanceDTO));
+        maintenance.setGarage(getGarageEntity(updateMaintenanceDTO));
 
         maintenance = this.maintenanceRepository.save(maintenance);
 
@@ -112,22 +102,16 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
         int currentCapacity = this.maintenanceRepository
                 .getCountOfMaintenanceForGarageAndDate(updateMaintenanceDTO.getGarageId(), updateMaintenanceDTO.getScheduledDate());
-        Garage garage = this.garageRepository
-                .findById(updateMaintenanceDTO.getGarageId())
-                .orElseThrow(() -> new RuntimeException(GARAGE_NOT_FOUND));
+        Garage garage = getGarageEntity(updateMaintenanceDTO);
 
         if (currentCapacity >= garage.getCapacity()) {
             throw new RuntimeException(NOT_ENOUGH_SPACE_IN_GARAGE);
         }
 
         Maintenance maintenance = new Maintenance();
-        setMaintenanceFields(updateMaintenanceDTO, maintenance);
+        mapToMaintenanceEntity(updateMaintenanceDTO, maintenance);
         maintenance.setGarage(garage);
-
-        Car car = this.carRepository
-                .findById(updateMaintenanceDTO.getCarId())
-                .orElseThrow(() -> new RuntimeException(CAR_NOT_FOUND));
-        maintenance.setCar(car);
+        maintenance.setCar(getCarEntity(updateMaintenanceDTO));
 
         maintenance = this.maintenanceRepository.save(maintenance);
 
@@ -165,7 +149,25 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         return result;
     }
 
-    private void setMaintenanceFields(UpdateMaintenanceDTO updateMaintenanceDTO, Maintenance maintenance) {
+    public Maintenance getMaintenanceEntity(Long id) {
+        return this.maintenanceRepository
+                .findById(id)
+                .orElseThrow(() -> new MaintenanceNotFoundException(MAINTENANCE_NOT_FOUND));
+    }
+
+    private Garage getGarageEntity(UpdateMaintenanceDTO updateMaintenanceDTO) {
+        return this.garageRepository
+                .findById(updateMaintenanceDTO.getGarageId())
+                .orElseThrow(() -> new GarageNotFoundException(GARAGE_NOT_FOUND));
+    }
+
+    private Car getCarEntity(UpdateMaintenanceDTO updateMaintenanceDTO) {
+        return this.carRepository
+                .findById(updateMaintenanceDTO.getCarId())
+                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+    }
+
+    private void mapToMaintenanceEntity(UpdateMaintenanceDTO updateMaintenanceDTO, Maintenance maintenance) {
         maintenance.setServiceType(updateMaintenanceDTO.getServiceType());
         maintenance.setDate(updateMaintenanceDTO.getScheduledDate());
     }
