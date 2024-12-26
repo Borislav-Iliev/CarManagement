@@ -16,9 +16,6 @@ public class Maintenance {
     private String serviceType;
 
     @Column(nullable = false)
-    private String type;
-
-    @Column(nullable = false)
     private LocalDate date;
 
     @ManyToOne(targetEntity = Car.class, fetch = FetchType.EAGER)
@@ -30,9 +27,8 @@ public class Maintenance {
     public Maintenance() {
     }
 
-    public Maintenance(String serviceType, String type, LocalDate date, Car car, Garage garage) {
+    public Maintenance(String serviceType, LocalDate date, Car car, Garage garage) {
         this.serviceType = serviceType;
-        this.type = type;
         this.date = date;
         this.car = car;
         this.garage = garage;
@@ -52,14 +48,6 @@ public class Maintenance {
 
     public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public LocalDate getDate() {

@@ -24,18 +24,21 @@ public class Garage {
     @Column(nullable = false)
     private int capacity;
 
-    @OneToMany(mappedBy = "garage", targetEntity = Maintenance.class, fetch = FetchType.EAGER)
-    private List<Maintenance> maintenances;
+    @ManyToMany(mappedBy = "garages")
+    private List<Car> cars;
 
     public Garage() {
     }
 
-    public Garage(String name, String location, String city, int capacity, List<Maintenance> maintenances) {
+    public Garage(Long id) {
+        this.id = id;
+    }
+
+    public Garage(String name, String location, String city, int capacity) {
         this.name = name;
         this.location = location;
         this.city = city;
         this.capacity = capacity;
-        this.maintenances = maintenances;
     }
 
     public Long getId() {
@@ -76,13 +79,5 @@ public class Garage {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
-    }
-
-    public List<Maintenance> getMaintenances() {
-        return maintenances;
-    }
-
-    public void setMaintenances(List<Maintenance> maintenances) {
-        this.maintenances = maintenances;
     }
 }

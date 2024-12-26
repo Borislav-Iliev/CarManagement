@@ -27,19 +27,19 @@ public class Car {
     @ManyToMany
     private List<Garage> garages;
 
-    @OneToMany(mappedBy = "car", targetEntity = Maintenance.class, fetch = FetchType.EAGER)
-    private List<Maintenance> maintenances;
-
     public Car() {
     }
 
-    public Car(String make, String model, int year, String licensePlate, List<Garage> garages, List<Maintenance> maintenances) {
+    public Car(Long id) {
+        this.id = id;
+    }
+
+    public Car(String make, String model, int year, String licensePlate, List<Garage> garages) {
         this.make = make;
         this.model = model;
         this.year = year;
         this.licensePlate = licensePlate;
         this.garages = garages;
-        this.maintenances = maintenances;
     }
 
     public Long getId() {
@@ -88,13 +88,5 @@ public class Car {
 
     public void setGarages(List<Garage> garages) {
         this.garages = garages;
-    }
-
-    public List<Maintenance> getMaintenances() {
-        return maintenances;
-    }
-
-    public void setMaintenances(List<Maintenance> maintenances) {
-        this.maintenances = maintenances;
     }
 }
