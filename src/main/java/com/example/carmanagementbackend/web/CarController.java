@@ -44,7 +44,7 @@ public class CarController {
             @RequestParam(required = false, name = "toYear") Integer toYear
     ) {
         return ResponseEntity
-                .ok(this.carService.getAllGarages(Optional.ofNullable(make), Optional.ofNullable(garageId),
+                .ok(this.carService.getAllCars(Optional.ofNullable(make), Optional.ofNullable(garageId),
                         Optional.ofNullable(fromYear), Optional.ofNullable(toYear)));
     }
 

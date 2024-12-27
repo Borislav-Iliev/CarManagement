@@ -3,7 +3,10 @@ package com.example.carmanagementbackend.service.impl;
 import com.example.carmanagementbackend.entity.dto.car.AddCarDTO;
 import com.example.carmanagementbackend.entity.dto.car.ResponseCarDTO;
 import com.example.carmanagementbackend.entity.dto.car.UpdateCarDTO;
+import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDTO;
 import com.example.carmanagementbackend.entity.excpetion.CarNotFoundException;
+import com.example.carmanagementbackend.entity.excpetion.ClientException;
+import com.example.carmanagementbackend.entity.excpetion.GarageNotFoundException;
 import com.example.carmanagementbackend.entity.model.Car;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.repository.CarRepository;
@@ -19,6 +22,7 @@ import java.util.Optional;
 public class CarServiceImpl implements CarService {
     private static final String CAR_NOT_FOUND = "Car not found!";
     private static final String CAR_CANNOT_BE_NULL = "Car cannot be null!";
+    private static final String GARAGE_NOT_FOUND = "Garage not found!";
 
     private final CarRepository carRepository;
     private final GarageRepository garageRepository;
@@ -36,38 +40,20 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public List<ResponseCarDTO> getAllGarages(Optional<String> make, Optional<Integer> garageId,
+    public List<ResponseCarDTO> getAllCars(Optional<String> make, Optional<Integer> garageId,
                                               Optional<Integer> fromYear, Optional<Integer> toYear) {
-        if (make.isPresent()) {
-            return this.carRepository.findAllByMakeContainsIgnoreCase(make.get())
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDTO.class)).toList();
-        }
-
-        if (garageId.isPresent()) {
-            Garage garage = this.garageRepository
-                    .findById((long) garageId.get())
-                    .orElseThrow();
-
-            return this.carRepository.findAllByGaragesContains(List.of(garage))
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDTO.class)).toList();
-        }
-
-        if (fromYear.isPresent()) {
-            return this.carRepository.findAllByYearGreaterThanEqual(fromYear.get())
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDTO.class)).toList();
-        }
-
-        if (toYear.isPresent()) {
-            return this.carRepository.findAllByYearLessThanEqual(toYear.get())
-                    .stream().map(car -> this.modelMapper.map(car, ResponseCarDTO.class)).toList();
-        }
-
-        return this.carRepository.findAll()
-                .stream().map(car -> this.modelMapper.map(car, ResponseCarDTO.class)).toList();
+        return this.carRepository.getCarsByFilters(make, garageId, fromYear, toYear)
+                .stream()
+                .map(c -> this.modelMapper.map(c, ResponseCarDTO.class))
+                .toList();
     }
 
     @Override
     public ResponseCarDTO updateCar(Long id, UpdateCarDTO updateCarDTO) {
+        if (updateCarDTO == null) {
+            throw new ClientException(CAR_CANNOT_BE_NULL);
+        }
+
         Car carById = getCarEntity(id);
         mapToCarEntity(updateCarDTO, carById);
 
@@ -105,6 +91,13 @@ public class CarServiceImpl implements CarService {
         return this.carRepository
                 .findById(id)
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+    }
+
+    private ResponseGarageDTO getResponseGarageDTO(Integer garageId) {
+        return this.garageRepository
+                .findById((long) garageId)
+                .map(g -> this.modelMapper.map(g, ResponseGarageDTO.class))
+                .orElseThrow(() -> new GarageNotFoundException(GARAGE_NOT_FOUND));
     }
 
     private void mapToCarEntity(UpdateCarDTO updateCarDTO, Car car) {

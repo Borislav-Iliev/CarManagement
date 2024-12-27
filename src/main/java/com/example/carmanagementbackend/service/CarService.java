@@ -11,7 +11,7 @@ public interface CarService {
 
     ResponseCarDTO getCarById(Long id);
 
-    List<ResponseCarDTO> getAllGarages(Optional<String> make, Optional<Integer> garageId, Optional<Integer> fromYear, Optional<Integer> toYear);
+    List<ResponseCarDTO> getAllCars(Optional<String> make, Optional<Integer> garageId, Optional<Integer> fromYear, Optional<Integer> toYear);
 
     ResponseCarDTO updateCar(Long id, UpdateCarDTO updateCarDTO);
 

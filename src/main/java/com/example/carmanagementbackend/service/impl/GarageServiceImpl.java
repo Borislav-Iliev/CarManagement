@@ -3,6 +3,7 @@ package com.example.carmanagementbackend.service.impl;
 import com.example.carmanagementbackend.entity.dto.garage.AddGarageDTO;
 import com.example.carmanagementbackend.entity.dto.garage.GarageDailyAvailabilityReportDTO;
 import com.example.carmanagementbackend.entity.dto.garage.ResponseGarageDTO;
+import com.example.carmanagementbackend.entity.excpetion.ClientException;
 import com.example.carmanagementbackend.entity.excpetion.GarageNotFoundException;
 import com.example.carmanagementbackend.entity.model.Garage;
 import com.example.carmanagementbackend.repository.GarageRepository;
@@ -34,18 +35,25 @@ public class GarageServiceImpl implements GarageService {
 
     @Override
     public List<ResponseGarageDTO> getAllGarages(Optional<String> city) {
-        return city.map(s -> this.garageRepository.findAllByCityContainsIgnoreCase(s)
+        if (city.isPresent()) {
+            return this.garageRepository.findAllByCityContainsIgnoreCase(city.get())
+                    .stream()
+                    .map(garage -> this.modelMapper.map(garage, ResponseGarageDTO.class))
+                    .toList();
+        }
+
+        return this.garageRepository.findAll()
                 .stream()
                 .map(garage -> this.modelMapper.map(garage, ResponseGarageDTO.class))
-                .toList())
-                .orElseGet(() -> this.garageRepository.findAll()
-                .stream()
-                .map(garage -> this.modelMapper.map(garage, ResponseGarageDTO.class))
-                .toList());
+                .toList();
     }
 
     @Override
     public ResponseGarageDTO updateGarage(Long id, AddGarageDTO addGarageDTO) {
+        if (addGarageDTO == null) {
+            throw new ClientException(GARAGE_CANNOT_BE_NULL);
+        }
+
         Garage garageById = getGarageEntity(id);
         mapToGarageEntity(addGarageDTO, garageById);
 
@@ -62,7 +70,7 @@ public class GarageServiceImpl implements GarageService {
     @Override
     public ResponseGarageDTO addGarage(AddGarageDTO addGarageDTO) {
         if (addGarageDTO == null) {
-            throw new IllegalArgumentException(GARAGE_CANNOT_BE_NULL);
+            throw new ClientException(GARAGE_CANNOT_BE_NULL);
         }
 
         Garage garage = this.modelMapper.map(addGarageDTO, Garage.class);
@@ -74,12 +82,17 @@ public class GarageServiceImpl implements GarageService {
     public List<GarageDailyAvailabilityReportDTO> getGarageDailyAvailabilityReport(Long garageId, LocalDate startDate, LocalDate endDate) {
         Garage garage = getGarageEntity(garageId);
 
-        List<GarageDailyAvailabilityReportDTO> garageDailyAvailabilityReport = this.garageRepository
+        List<GarageDailyAvailabilityReportDTO> reportDTOs = this.garageRepository
                 .getGarageDailyAvailabilityReport(garageId, startDate, endDate);
 
-        garageDailyAvailabilityReport.forEach(e -> e.setAvailableCapacity(garage.getCapacity() - e.getRequests()));
+        long allRequestsCount = reportDTOs
+                .stream()
+                .mapToLong(GarageDailyAvailabilityReportDTO::getRequests)
+                .sum();
 
-        return garageDailyAvailabilityReport;
+        reportDTOs.forEach(e -> e.setAvailableCapacity(garage.getCapacity() - allRequestsCount));
+
+        return reportDTOs;
     }
 
     public Garage getGarageEntity(Long id) {

@@ -16,7 +16,8 @@ public interface GarageRepository extends JpaRepository<Garage, Long> {
     List<Garage> findAllByCityContainsIgnoreCase(String city);
 
     @Query("SELECT new com.example.carmanagementbackend.entity.dto.garage.GarageDailyAvailabilityReportDTO" +
-            " (m.date, COUNT(m)) FROM Garage g" +
+            " (m.date, COUNT(m))" +
+            " FROM Garage g" +
             " INNER JOIN Maintenance m ON m.garage.id = g.id" +
             " WHERE g.id = :garageId AND m.date >= :startDate AND m.date <= :endDate" +
             " GROUP BY m.date")

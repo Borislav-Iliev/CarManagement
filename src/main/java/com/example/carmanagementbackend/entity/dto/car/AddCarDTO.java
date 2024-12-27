@@ -1,14 +1,12 @@
 package com.example.carmanagementbackend.entity.dto.car;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -31,6 +29,5 @@ public class AddCarDTO {
     @Size(min = 2, max = 20, message = "Car license plate must be between 2 and 20 characters!")
     private String licensePlate;
 
-    @NotNull(message = "Car garage ids must be provided!")
     private List<Long> garageIds;
 }
